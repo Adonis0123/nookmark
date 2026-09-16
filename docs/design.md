@@ -258,6 +258,16 @@ Canvas copy is not the domain model:
 - 「常用」 is a Popup section of Bookmark tiles. Which Bookmarks belong there is not specified here.
 - 「最近打开」 and 「已同步」 are canvas copy. Bookmark extra metadata is still open (ADR 0001). Chrome Sync is not a Nookmark record.
 
+## Screens
+
+| Screen | Status | Notes |
+|---|---|---|
+| `docs/screens/popup.png` | **Normative** | The toolbar Popup this spec describes. Token-for-token, this screenshot and this document agree. |
+| `docs/screens/popup-add-bookmark.png` | Not aligned | Add-Bookmark dialog (560px). **Predates the `{colors.accent}` decision** — it still uses the earlier Azure palette with grey borders (`#D6E3F0`) instead of white glass edges, and carries a 「标签」 field that `CONTEXT.md` avoids. Treat as a layout reference only. |
+| `docs/screens/manager.png` | Not aligned | Earlier exploration of the Manager surface (1440×720). **Not covered by this spec** (see `CONTEXT.md`) and also on the earlier Azure accent. Treat as a layout reference only. |
+
+Source canvas: <https://ardot.tencent.com/file/726157280612685> — node `9:1` is the Popup, `2:418` the Add-Bookmark dialog, `4:134` the Manager exploration.
+
 ## Overview
 
 这套系统的全部张力来自一个判断：**浅色玻璃的"高级感"不来自玻璃本身，而来自玻璃底下那层有色调的底。**纯白玻璃放在近白底上会当场消失，所以画布必须带一点色相——一条从 `{colors.canvas-top}` 到 `{colors.canvas-bottom}` 的单色相冷蓝渐变，色相锁在 H215–220，只做明度变化（L 97% → 91% → 87%）。渐变之上浮两枚大半径光斑：一枚宝蓝 `{colors.atmosphere-glow}`、一枚纯白 `{colors.atmosphere-highlight}`，都走 150px 模糊。

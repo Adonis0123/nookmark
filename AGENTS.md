@@ -2,7 +2,7 @@
 
 Chrome/Edge MV3 extension. Client on the browser bookmarks tree. First surface is the toolbar popup.
 
-Read `CONTEXT.md` for domain terms. Decisions live in `docs/adr/`. Popup visual spec: `docs/design.md`.
+Read `CONTEXT.md` for domain terms. Decisions live in `docs/adr/`. Product spec: `docs/prd.md`. Popup visual spec: `docs/design.md`, with reference screens in `docs/screens/`.
 
 ## Commands
 
