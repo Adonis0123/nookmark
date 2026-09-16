@@ -2,7 +2,7 @@
 
 Chrome/Edge MV3 extension. Client on the browser bookmarks tree. First surface is the toolbar popup.
 
-Read `CONTEXT.md` for domain terms. Decisions live in `docs/adr/`.
+Read `CONTEXT.md` for domain terms. Decisions live in `docs/adr/`. Popup visual spec: `docs/design.md`.
 
 ## Commands
 
@@ -22,7 +22,7 @@ Read `CONTEXT.md` for domain terms. Decisions live in `docs/adr/`.
 ## Data
 
 - Bookmark / Folder: `browser.bookmarks` is the source of truth (ADR 0001)
-- Extension prefs (theme, last query): `storage.defineItem` from `#imports`
+- Extension prefs (theme, last query): `storage.defineItem` from `#imports`. Theme is reserved; the popup is light-only (ADR 0003).
 - Do not copy the bookmarks tree into IndexedDB or a parallel library
 
 ## Hooks
