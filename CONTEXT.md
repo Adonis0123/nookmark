@@ -19,8 +19,13 @@ _Avoid_: tag, collection, album, category
 **Popup**:
 The toolbar popup. Nookmark's first surface. Visual spec: `docs/design.md`.
 _Avoid_: side panel, bookmarks.html, new tab page
+
 **Manager**:
-A later full-page surface for browsing the bookmarks tree. Not specified by the popup visual spec.
+A later full-page surface for browsing the bookmarks tree. Not specified by the popup visual spec. Out of the first Popup P0 slice.
 _Avoid_: chrome://bookmarks replacement
+
+**Folder filter**:
+A chip on the Popup that narrows the view to Bookmarks under one top-level Folder (plus an "全部" chip). Canvas mock labels like「设计」「开发」stand in for the user's real Folder titles.
+_Avoid_: tag, category, collection, album
 
 

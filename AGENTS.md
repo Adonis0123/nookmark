@@ -30,7 +30,7 @@ Read `CONTEXT.md` for domain terms. Decisions live in `docs/adr/`. Product spec:
 Put React hooks in `hooks/`. One hook wraps one browser API:
 
 - `useCurrentTab` → `browser.tabs`
-- `useBookmarkSearch` → `browser.bookmarks.search`
+- `useBookmarkSearch` → local search index (ADR 0004); `browser.bookmarks` is the index data source, not `bookmarks.search`
 - `useStorageItem` → `storage.defineItem(...).watch`
 
 No extra hook library. TanStack Query is allowed later if a screen has cache/invalidation pain; do not add it up front.

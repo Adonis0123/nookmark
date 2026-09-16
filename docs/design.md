@@ -255,8 +255,10 @@ Canvas copy is not the domain model:
 
 - The lockup 「书签」 is mock UI. The product name is Nookmark.
 - Category swatches color Folder glyphs. They are not a Category entity.
-- 「常用」 is a Popup section of Bookmark tiles. Which Bookmarks belong there is not specified here.
-- 「最近打开」 and 「已同步」 are canvas copy. Bookmark extra metadata is still open (ADR 0001). Chrome Sync is not a Nookmark record.
+- 「常用」 is a Popup section of Bookmark tiles. Product rule (PRD §0.1 D4): 8 auto tiles by local openCount; no manual pin.
+- 「最近打开」 and 「已同步」 are canvas copy. Product rule (PRD §0.1 D5): 3 recent rows; clear wipes local open records only. Chrome Sync is not a Nookmark record; sync copy must follow `syncing` when shown.
+- Search placeholder on canvas may still say「标签」. Product copy is「搜索书签、网址或拼音」(PRD §0.1 D6). Filter chips map to top-level Folders (Folder filter), not tags.
+- Main 「＋」 means save the current tab (PRD §0.1 D2), not an empty-bookmark dialog. Manager entry and settings gear are out of the first Popup P0 slice (D7).
 
 ## Screens
 
