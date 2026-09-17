@@ -1,5 +1,7 @@
-# Search uses a local index; bookmarks API is data only
+# Search uses a local multi-channel index
 
-`browser.bookmarks.search` cannot meet Chinese P0 recall (pinyin, initials, order-independent Han, domain channel). Search builds and queries a local index in `storage.local`; `browser.bookmarks` remains the source of truth for Bookmark/Folder records and change events. The AGENTS.md hook is a search facade over that index, not a thin wrapper around `bookmarks.search`.
+`browser.bookmarks.search` cannot meet Chinese P0 recall (PRD R4 / §0.1 D1): Han substring, order-independent Han, pinyin, initials, Latin, domain, and width/whitespace normalization. Product search therefore builds and queries a **local multi-channel index** in `chrome.storage.local`. `browser.bookmarks` remains the source of truth for Bookmark and Folder records and the change events that keep the index current (`onCreated` / `onChanged` / `onMoved` / `onRemoved` / `onChildrenReordered` / import begin–end). It is the index data source, not the search engine.
 
-A dual-path (API placeholder + local index) was rejected to avoid a half-dead code path that would never pass R4 acceptance.
+The AGENTS.md hook (`useBookmarkSearch`, or a clearer name) is a facade over that index. Calling `bookmarks.search` for product search is rejected so we do not keep a half-dead path that can never pass R4 acceptance.
+
+A dual-path (API placeholder plus local index) was also rejected.
