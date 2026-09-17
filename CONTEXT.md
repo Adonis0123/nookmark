@@ -25,7 +25,9 @@ A later full-page surface for browsing the bookmarks tree. Not specified by the 
 _Avoid_: chrome://bookmarks replacement
 
 **Folder filter**:
-A chip on the Popup that narrows the view to Bookmarks under one top-level Folder (plus an "全部" chip). Canvas mock labels like「设计」「开发」stand in for the user's real Folder titles.
-_Avoid_: tag, category, collection, album
+A chip on the Popup that narrows the view to Bookmarks under one top-level Folder (plus an "全部" chip). Canvas mock labels like「设计」「开发」stand in for the user's real Folder titles. This is a Folder constraint, not a tag system — there is no Tag entity (PRD D3).
+_Avoid_: tag, category, collection, album, label chip
 
-
+**OpenRecord**:
+A local open-history row (`bookmarkId`, `openedAt`, `openCount`) in `chrome.storage.local`. Seeds 常用 tiles and 最近打开. Clearing it wipes local history only and does not delete Bookmarks (PRD D5 / R2). It is not bookmark source of truth.
+_Avoid_: Chrome Sync record, bookmark SoT, `chrome.history`, `dateLastUsed` as the only store

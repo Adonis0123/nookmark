@@ -30,7 +30,9 @@
 | `docs/adr/0001-chrome-bookmarks-as-source-of-truth.md` | = 本文档 §0 一句话定义 + §3 Non-goals N1。**R1 / R5 与之一致** |
 | `docs/adr/0002-community-stack.md` | 技术栈（WXT + React 19 + Tailwind v4 + shadcn/ui）。本 PRD 不涉及 |
 | `docs/adr/0003-popup-light-only-glass.md` | §3 N1 之外的视觉前提。**本文档 §8 原写的"深色模式未定义"由此成为决策，而不是缺口** |
-| `docs/design.md` | 视觉规范，已与 `docs/screens/popup.png` 一一对应 |
+| `docs/adr/0004-local-search-index.md` | = §0.1 D1 / R4。本地多通道索引；`bookmarks.search` 不作产品搜索 |
+| `docs/adr/0005-permissions.md` | = 附录 B。安装时 `bookmarks` / `favicon` / `storage`；不为 `tabs.create` 申请全量 `tabs` |
+| `docs/design.md` | 视觉规范，已与 `docs/screens/popup.png` 一一对应；P0 状态见该文档 **P0 states & interactions** |
 | `CONTEXT.md` | 领域术语。**本文档用词与它冲突时，以它为准** |
 
 ### 3. ⚠️ 发现一处必须定案的冲突
@@ -481,14 +483,24 @@ score = Σ( channelWeight × matchTypeWeight × positionBonus ) × behaviorBoost
 
 ## 8. 与现有设计稿的对应关系
 
-设计稿（弹窗 420×680 + Manager）已经覆盖了大部分 P0 的视觉外壳。截图见 `docs/screens/`（其中 `popup.png` 与 `docs/design.md` 一一对应，为规范版本）。但要落地，仍有几处**需要产品决策**：
+### 实现对照
+
+画布文案与节点名是 mock，**不得覆盖 §0.1**。实现与 `docs/design.md` 以决策为准：
+
+- **D6** 搜索占位 =「搜索书签、网址或拼音」，不是画布「标签」
+- **D7** 齿轮 /「打开管理页」在第一刀 P0 不交互（隐藏或禁用）
+- **D2** 主 ＋ = 收藏当前页；`popup-add-bookmark` 的 Azure +「标签」对话框不是规范
+
+空状态、无结果（含拼音提示）、权限失败、索引中、拼音命中行提示、收藏当前页 toast/inline 反馈见 `docs/design.md` **P0 states & interactions**。
+
+设计稿（弹窗 420×680 + Manager）已经覆盖了大部分 P0 的视觉外壳。截图见 `docs/screens/`（其中 `popup.png` 与 `docs/design.md` 一一对应，为规范版本）。落地对照：
 
 | 设计稿元素 | 对应需求 | 数据来源 | 状态 |
 |---|---|---|---|
 | 搜索栏 + `⌘K` | R4 | 本地索引 | ✅ **占位 =「搜索书签、网址或拼音」**（D6）。画布仍可能写着「标签」——实现与规范以 D6 为准，后续改画布 |
 | 筛选芯片（全部 / 设计 / 开发 / 阅读 / 效率） | R1 + Folder filter | **用户顶层 Folder** | ✅ **进 P0**（D3）。文案用真实 Folder 名；「设计/开发/…」仅为 mock。画布节点名「标签筛选」不得带进产品文案（Avoid tag） |
-| 搜索结果高亮 | R4.6 | 匹配位置 | 设计稿**未覆盖**。实现时补：原文高亮 + 拼音命中右侧「sjlg → 设计灵感」提示 |
-| 搜索无结果态 | R4.6 | — | 设计稿**未覆盖**。实现时补：无结果文案 + 站外搜索出口 + 拼音引导 |
+| 搜索结果高亮 | R4.6 | 匹配位置 | ✅ 文案 + token 见 `docs/design.md` P0 states（原文高亮 + 拼音行 `sjlg → 汉字`） |
+| 搜索无结果态 | R4.6 | — | ✅ 见 `docs/design.md` P0 states：无结果 + 站外搜索 + 拼音引导 |
 | 输入法组合态 | R4.6 | `compositionend` | 设计稿**未覆盖**，但**必须实现** |
 | ~~分类芯片（8 个硬编码）~~ | — | — | ✅ **已关闭**（原 Q4）：常用区 8 项是 Bookmark mock 名，不是分类实体 |
 | 常用区（8 格网格） | R3 | 本地 openCount | ✅ **8 格纯自动，不可置顶**（D4） |

@@ -260,6 +260,8 @@ Canvas copy is not the domain model:
 - Search placeholder on canvas may still say「标签」. Product copy is「搜索书签、网址或拼音」(PRD §0.1 D6). Filter chips map to top-level Folders (Folder filter), not tags.
 - Main 「＋」 means save the current tab (PRD §0.1 D2), not an empty-bookmark dialog. Manager entry and settings gear are out of the first Popup P0 slice (D7).
 
+P0 empty / no-results / permission / loading / save-current feedback is specified in **P0 states & interactions** below (text + tokens). No extra screenshots required.
+
 ## Screens
 
 | Screen | Status | Notes |
@@ -635,12 +637,74 @@ Source canvas: <https://ardot.tencent.com/file/726157280612685> — node `9:1` i
 
 ---
 
+## P0 states & interactions
+
+Text + tokens only. No new screenshots. Product rules in PRD §0.1 win over canvas copy (D2 / D6 / D7).
+
+### Empty library
+
+The bookmarks tree has no URL nodes (US-11). Hide `{component.bookmark-tile}` grid and `{component.recent-row}` list when they have nothing to show (D4 already hides 常用 when there are no bookmarks). Do **not** render an error.
+
+Show a quiet guide in the content column: `{typography.caption}` / `{colors.ink-muted}` (readable; do not use `{colors.ink-tertiary}` for this teaching copy). Example:「还没有书签。点右上角 ＋ 收藏当前页面。」`{component.button-create}` stays available.
+
+### No search results
+
+Query returned zero hits (R4.6). Replace the results list with:
+
+1. `{typography.section-title}` / `{colors.ink}` —「没有匹配的书签」
+2. Optional exit — `{component.text-link}`「在网上搜索『…』」
+3. Pinyin tip — `{typography.caption}` / `{colors.ink-muted}`:「可输入拼音或首字母，如 `sjlg`」
+
+The tip teaches pinyin input (PRD R4.6). Do not omit it.
+
+### Permission denied / bookmarks read failure
+
+R6. Full-panel message, not a toast that can be missed, and not raw API strings.
+
+- Title `{typography.section-title}` / `{colors.ink}`:「需要书签访问权限」or「无法读取书签」
+- Body `{typography.caption}` / `{colors.ink-muted}`: one sentence that this is a permission or read failure, not that bookmarks were deleted
+- Action `{component.text-link}`: open the extension's settings (`chrome://extensions` for this id)
+
+Managed / `unmodifiable` nodes stay in the list with a lock cue; they are not this state.
+
+### Loading / indexing
+
+First build of the local index (ADR 0004 / M5: interactive ≤ 1s, full index ≤ 3s). Keep chrome (lockup, search, ＋) up. In the content column, a quiet caption `{typography.caption}` / `{colors.ink-muted}`「正在索引书签…」or ghost tiles that reuse `{colors.glass-panel}` / `{colors.inset-tint-6}` with no titles. Do not show stale or partial search hits.
+
+### Pinyin-hit row hint
+
+When a row is a pinyin / initials hit (R4.6 / US-02e):
+
+- Highlight the matching **Han** in the title (`{colors.accent}` is allowed here as one of the five accent hits, or a `{colors.accent-soft-15}` wash under the glyphs)
+- On the right of `{component.recent-row}`, a light cue `{typography.meta}` / `{colors.ink-muted}`: `sjlg → 汉字` (example: `sjlg → 设计灵感`)
+
+Do not invent a second accent. Skip the cue on raw Han / Latin hits.
+
+### Save current page (main ＋)
+
+`{component.button-create}` saves the current tab (D2). Feedback is a **toast or inline caption**, not a dialog.
+
+| Outcome | Copy (example) | Treatment |
+|---|---|---|
+| Success |「已收藏当前页面」 | Brief toast / inline; `{typography.caption}` / `{colors.ink}` on `{colors.glass-element}` |
+| Already saved |「当前页面已在书签中」 | Same surface; do not write a duplicate Bookmark |
+| Failure | Readable reason (invalid URL, write error) | Same surface; no raw exception string |
+
+**Do not** treat `docs/screens/popup-add-bookmark.png` as normative. That frame is Azure + a「标签」field and predates `{colors.accent}` / D2. Empty-bookmark dialog is out of P0.
+
+### Gear / Manager (D7)
+
+`{component.button-ghost-circular}` (gear) and the footer「打开管理页」`{component.text-link}` are **not interactive** in the first P0 slice: hide them, or leave them visible but `disabled` (no navigation). Hidden entries do not count toward the five `{colors.accent}` hits.
+
+---
+
 ## Known Gaps
 
 - **深色模式未定义。**本系统是浅色专属。深色不能靠反色复用——玻璃层级建立在白色叠加之上，深色下需要另起"surface 阶梯 + 中性光斑"的体系。
 - **`{colors.ink-tertiary}` 对比度不达标。**`#86868B` 在玻璃底上实测 3.25:1，低于 AA 4.5:1。它只用在可跳过的元信息上；若要承载可读内容，必须升级到 `{colors.ink-muted}`。
-- **管理页（宽屏面）未纳入本规范。**本规范抽取自 420×680 的弹窗主界面。宽屏管理页需要补侧栏 / 多栏网格 / 表格行三组组件，且当前画布上的管理页版本用的是另一支蓝（H210），与本规范的 `{colors.accent}`（H217）不一致——两者需要先统一强调色再合并成一份完整规范。
+- **管理页（宽屏面）未纳入本规范。**本规范抽取自 420×680 的弹窗主界面。宽屏管理页需要补侧栏 / 多栏网格 / 表格行三组组件，且当前画布上的管理页版本用的是另一支蓝（H210），与本规范的 `{colors.accent}`（H217）不一致——两者需要先统一强调色再合并成一份完整规范。P0 不实现 Manager / 齿轮交互（D7）。
 - **按压 / 悬停 / 焦点态只定义了填充变化。**过渡时长、缓动曲线、位移量均未在画布上验证，属于实现阶段待定项。
 - **图标字形均为 1.4–1.6px 线性描边，未做统一的 24×24 网格规范。**目前依赖逐图导出时的视觉对齐，补齐需要一份正式的图标网格。
-- **空的 / 加载中 / 错误 / 无搜索结果**四类状态未设计。记录行与书签卡片都需要对应的占位形态。
+- **P0 空 / 无结果 / 权限失败 / 索引中 / 拼音提示 / 收藏当前页反馈**已在上文用文案 + token 写清；画布上仍无对应像素稿。实现按该节落地，不必等新截图。记录行 / 卡片的骨架形态仍可在实现时微调。
+- **`popup-add-bookmark` 对话框不是 P0 规范。**主 ＋ = 收藏当前页（D2）；Azure +「标签」稿只作历史布局参考。
 - **滚动条样式未定义。**在 macOS 上依赖系统覆盖式滚动条；Windows 上需要显式样式化，否则与玻璃面板冲突。
