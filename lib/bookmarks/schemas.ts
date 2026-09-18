@@ -47,3 +47,10 @@ export const bookmarkSnapshotSchema = z.object({
   nodes: z.array(bookmarkNodeSchema),
   index: z.array(searchIndexEntrySchema),
 });
+
+export const snapshotStateSchema = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('loading'), snapshot: z.null() }),
+  z.object({ status: z.literal('ok'), snapshot: bookmarkSnapshotSchema }),
+  z.object({ status: z.literal('permission'), snapshot: z.null() }),
+  z.object({ status: z.literal('error'), snapshot: z.null() }),
+]);

@@ -39,3 +39,9 @@ export type BookmarkSnapshot = {
   nodes: BookmarkNode[];
   index: SearchIndexEntry[];
 };
+
+export type SnapshotState =
+  | { status: 'loading'; snapshot: null }
+  | { status: 'ok'; snapshot: BookmarkSnapshot }
+  | { status: 'permission'; snapshot: null }
+  | { status: 'error'; snapshot: null };

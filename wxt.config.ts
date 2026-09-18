@@ -8,6 +8,6 @@ export default defineConfig({
   }),
   manifest: {
     name: 'Nookmark',
-    permissions: ['bookmarks', 'favicon', 'storage'],
+    permissions: ['bookmarks', 'favicon', 'storage', 'activeTab'],
   },
 });

@@ -9,6 +9,8 @@
   --color-canvas-top: #f2f7fe;
   --color-canvas-mid: #e9f1fc;
   --color-canvas-bottom: #dce8f9;
+  --color-atmosphere-glow: rgb(8 102 255 / 0.15);
+  --color-atmosphere-highlight: rgb(255 255 255 / 0.75);
   --color-glass-panel: rgb(255 255 255 / 0.62);
   --color-glass-panel-flat: rgb(255 255 255 / 0.60);
   --color-glass-element: rgb(255 255 255 / 0.55);
