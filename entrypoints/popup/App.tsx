@@ -4,7 +4,15 @@ import { useBookmarkSearch } from '@/hooks/useBookmarkSearch';
 import { useCurrentTab } from '@/hooks/useCurrentTab';
 import { useIdleView } from '@/hooks/useIdleView';
 import { useStorageItem } from '@/hooks/useStorageItem';
-import { openResultCopy, saveResultCopy } from '@/lib/copy';
+import {
+  EMPTY_COPY,
+  LOADING_COPY,
+  openResultCopy,
+  permissionPanel,
+  permissionSettingsUrl,
+  readErrorPanel,
+  saveResultCopy,
+} from '@/lib/copy';
 import { displayDomain, formatRelativeTime } from '@/lib/display';
 import { faviconUrl } from '@/lib/favicon';
 import { bumpOpenRecord } from '@/lib/open-records';
@@ -22,10 +30,9 @@ import { SearchBar } from './components/SearchBar.tsx';
 import { Shell } from './components/Shell.tsx';
 import { Toast } from './components/Toast.tsx';
 
-const LOADING_COPY = '正在索引书签…';
-const EMPTY_COPY = '还没有书签。点右上角 ＋ 收藏当前页面。';
 const NO_RESULTS_TITLE = '没有匹配的书签';
 const PINYIN_TIP = '可输入拼音或首字母，如 sjlg';
+
 export function App() {
   const [query, setQuery] = useState('');
   const [selectedChipId, setSelectedChipId] = useState<string | null>(null);
@@ -143,7 +150,10 @@ export function App() {
         }}
       />
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto [scrollbar-width:thin]">
-        {showSearch && idle.status !== 'permission' && idle.status !== 'error' ? (
+        {showSearch &&
+        idle.status !== 'permission' &&
+        idle.status !== 'error' &&
+        idle.status !== 'loading' ? (
           <>
             <FilterChips
               chips={idle.chips}
@@ -245,16 +255,23 @@ function IdleBody({
   if (idle.status === 'permission') {
     return (
       <FullPanelMessage
-        title="需要书签访问权限"
-        body="Nookmark 需要书签权限才能读取浏览器里的书签。书签仍在浏览器中，并未被删除。"
+        title={permissionPanel.title}
+        body={permissionPanel.body}
+        actionLabel={permissionPanel.actionLabel}
+        onAction={() => {
+          void browser.tabs.create({
+            url: permissionSettingsUrl(extensionId),
+            active: true,
+          });
+        }}
       />
     );
   }
   if (idle.status === 'error') {
     return (
       <FullPanelMessage
-        title="无法读取书签"
-        body="暂时无法读取浏览器书签。书签仍在浏览器中，并未被删除。"
+        title={readErrorPanel.title}
+        body={readErrorPanel.body}
       />
     );
   }
@@ -281,6 +298,7 @@ function IdleBody({
               id: item.id,
               title: item.title,
               faviconSrc: faviconUrl(item.url, extensionId),
+              locked: item.unmodifiable === 'managed',
             }))}
             onOpen={(id) => {
               const item = idle.frequent.find((row) => row.id === id);

@@ -157,6 +157,19 @@ describe('selectIdleView', () => {
     expect(view.recent.map((row) => row.id)).toEqual(['101']);
   });
 
+  it('marks managed URL nodes so the UI can show a lock cue', () => {
+    const nodes = flattenTree(tree).map((node) =>
+      node.id === '101' ? { ...node, unmodifiable: 'managed' as const } : node,
+    );
+    const view = selectIdleView(
+      ok(nodes),
+      [{ bookmarkId: '101', openedAt: now, openCount: 1 }],
+      '10',
+      now,
+    );
+    expect(view.folderRows?.[0]?.unmodifiable).toBe('managed');
+  });
+
   it('sets syncingAll only when every URL node is syncing', () => {
     const nodes = flattenTree(tree).map((node) =>
       node.isFolder ? node : { ...node, syncing: true },

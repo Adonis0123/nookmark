@@ -8,6 +8,24 @@ const SAVE_COPY = {
 
 const OPEN_BLOCKED_COPY = '该链接类型已被安全策略阻止';
 
+export const LOADING_COPY = '正在索引书签…';
+export const EMPTY_COPY = '还没有书签。点右上角 ＋ 收藏当前页面。';
+
+export const permissionPanel = {
+  title: '需要书签访问权限',
+  body: 'Nookmark 需要书签权限才能读取浏览器里的书签。书签仍在浏览器中，并未被删除。',
+  actionLabel: '打开扩展设置',
+};
+
+export const readErrorPanel = {
+  title: '无法读取书签',
+  body: '暂时无法读取浏览器书签。书签仍在浏览器中，并未被删除。',
+};
+
+export function permissionSettingsUrl(extensionId: string): string {
+  return `chrome://extensions/?id=${extensionId}`;
+}
+
 export function saveResultCopy(
   result:
     | { ok: true; id: string }

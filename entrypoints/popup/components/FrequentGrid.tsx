@@ -4,6 +4,7 @@ export type FrequentItem = {
   id: string;
   title: string;
   faviconSrc?: string;
+  locked?: boolean;
 };
 
 type FrequentGridProps = {
@@ -26,6 +27,7 @@ export function FrequentGrid({ items, onOpen }: FrequentGridProps) {
             key={item.id}
             title={item.title}
             faviconSrc={item.faviconSrc}
+            locked={item.locked}
             onClick={() => onOpen?.(item.id)}
           />
         ))}
