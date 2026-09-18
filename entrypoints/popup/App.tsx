@@ -1,14 +1,17 @@
 import { Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useBookmarkSearch } from '@/hooks/useBookmarkSearch';
+import { useCurrentTab } from '@/hooks/useCurrentTab';
 import { useIdleView } from '@/hooks/useIdleView';
 import { useStorageItem } from '@/hooks/useStorageItem';
+import { openResultCopy, saveResultCopy } from '@/lib/copy';
 import { displayDomain, formatRelativeTime } from '@/lib/display';
 import { faviconUrl } from '@/lib/favicon';
 import { bumpOpenRecord } from '@/lib/open-records';
 import { openBookmark } from '@/lib/open-bookmark';
+import { saveCurrentPage } from '@/lib/save-current';
 import type { SearchHit } from '@/lib/search/match';
-import { openRecordsItem } from '@/lib/storage-items';
+import { openRecordsItem, snapshotStateItem } from '@/lib/storage-items';
 import { BrandLockup } from './components/BrandLockup.tsx';
 import { FilterChips } from './components/FilterChips.tsx';
 import { FrequentGrid } from './components/FrequentGrid.tsx';
@@ -23,8 +26,6 @@ const LOADING_COPY = '正在索引书签…';
 const EMPTY_COPY = '还没有书签。点右上角 ＋ 收藏当前页面。';
 const NO_RESULTS_TITLE = '没有匹配的书签';
 const PINYIN_TIP = '可输入拼音或首字母，如 sjlg';
-const OPEN_BLOCKED_COPY = '该链接类型已被安全策略阻止';
-
 export function App() {
   const [query, setQuery] = useState('');
   const [selectedChipId, setSelectedChipId] = useState<string | null>(null);
@@ -32,10 +33,13 @@ export function App() {
   const [selectedHit, setSelectedHit] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const savingRef = useRef(false);
   const now = Date.now();
   const idle = useIdleView(selectedChipId, now);
   const { hits } = useBookmarkSearch(query, selectedChipId, composing);
   const records = useStorageItem(openRecordsItem);
+  const snapshotState = useStorageItem(snapshotStateItem);
+  const tab = useCurrentTab();
   const extensionId = browser.runtime.id;
   const showSearch = !composing && query.trim().length > 0;
 
@@ -53,11 +57,33 @@ export function App() {
     const result = await openBookmark(url, {
       createTab: (opts) => browser.tabs.create(opts),
     });
-    if (!result.ok) {
-      setToast(OPEN_BLOCKED_COPY);
+    const blocked = openResultCopy(result);
+    if (blocked) {
+      setToast(blocked);
       return;
     }
     await openRecordsItem.setValue(bumpOpenRecord(records, id, Date.now()));
+  }
+
+  async function handleSave() {
+    if (savingRef.current) return;
+    savingRef.current = true;
+    try {
+      const nodes =
+        snapshotState.status === 'ok' ? snapshotState.snapshot.nodes : [];
+      const result = await saveCurrentPage({
+        url: tab?.url ?? '',
+        title: tab?.title || tab?.url || '',
+        nodes,
+        create: async (opts) => {
+          const created = await browser.bookmarks.create(opts);
+          return { id: created.id };
+        },
+      });
+      setToast(saveResultCopy(result));
+    } finally {
+      savingRef.current = false;
+    }
   }
 
   function openSelectedHit() {
@@ -103,7 +129,7 @@ export function App() {
           }
           syncingAll={idle.syncingAll}
         />
-        <CreateButton />
+        <CreateButton onClick={() => void handleSave()} />
       </header>
       <SearchBar
         value={query}
