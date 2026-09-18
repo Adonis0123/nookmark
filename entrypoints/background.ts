@@ -4,6 +4,7 @@ import {
   applyMoved,
   applyRemoved,
 } from '@/lib/bookmarks/events';
+import { createBookmarkJobQueue } from '@/lib/bookmarks/job-queue';
 import { rebuild, type SnapshotIo } from '@/lib/bookmarks/snapshot';
 import type { BookmarkSnapshot, OpenRecord } from '@/lib/bookmarks/types';
 import { openRecordsItem, snapshotStateItem } from '@/lib/storage-items';
@@ -17,14 +18,15 @@ const io: SnapshotIo = {
   now: () => Date.now(),
 };
 
+const jobs = createBookmarkJobQueue();
+
 export default defineBackground(() => {
   let importing = false;
-  let ready = false;
 
   async function patch(
     apply: (snapshot: BookmarkSnapshot, records: OpenRecord[]) => BookmarkSnapshot,
   ): Promise<void> {
-    if (importing || !ready) return;
+    if (importing) return;
     const state = await snapshotStateItem.getValue();
     if (state.status !== 'ok') {
       await rebuild(io);
@@ -38,37 +40,36 @@ export default defineBackground(() => {
   }
 
   browser.bookmarks.onCreated.addListener((_id, node) => {
-    void patch((snapshot, records) => applyCreated(snapshot, node, records));
+    jobs.enqueue(() =>
+      patch((snapshot, records) => applyCreated(snapshot, node, records)),
+    );
   });
   browser.bookmarks.onChanged.addListener((id, change) => {
-    void patch((snapshot, records) => applyChanged(snapshot, id, change, records));
+    jobs.enqueue(() =>
+      patch((snapshot, records) => applyChanged(snapshot, id, change, records)),
+    );
   });
   browser.bookmarks.onMoved.addListener((id, move) => {
-    void patch((snapshot) => applyMoved(snapshot, id, move));
+    jobs.enqueue(() => patch((snapshot) => applyMoved(snapshot, id, move)));
   });
   browser.bookmarks.onRemoved.addListener((id) => {
-    void patch((snapshot) => applyRemoved(snapshot, id));
+    jobs.enqueue(() => patch((snapshot) => applyRemoved(snapshot, id)));
   });
   browser.bookmarks.onChildrenReordered.addListener(() => {
-    if (importing || !ready) return;
-    void rebuild(io);
+    jobs.enqueue(async () => {
+      if (importing) return;
+      await rebuild(io);
+    });
   });
   browser.bookmarks.onImportBegan.addListener(() => {
     importing = true;
   });
   browser.bookmarks.onImportEnded.addListener(() => {
-    importing = false;
-    void rebuild(io);
+    jobs.enqueue(async () => {
+      await rebuild(io);
+      importing = false;
+    });
   });
 
-  browser.runtime.onInstalled.addListener(() => {
-    void rebuild(io);
-  });
-  browser.runtime.onStartup.addListener(() => {
-    void rebuild(io);
-  });
-
-  void rebuild(io).finally(() => {
-    ready = true;
-  });
+  jobs.enqueue(() => rebuild(io));
 });
