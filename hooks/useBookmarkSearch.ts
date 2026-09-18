@@ -10,10 +10,11 @@ export function useBookmarkSearch(
   query: string,
   folderId: string | null,
   composing = false,
-): { hits: SearchHit[] } {
+): { hits: SearchHit[]; pending: boolean } {
   const state = useStorageItem(snapshotStateItem);
   const records = useStorageItem(openRecordsItem);
   const [hits, setHits] = useState<SearchHit[]>([]);
+  const [pending, setPending] = useState(false);
   const sessionRef = useRef(createSearchSession());
 
   useEffect(() => {
@@ -30,9 +31,11 @@ export function useBookmarkSearch(
 
     if (query.trim().length === 0) {
       setHits([]);
+      setPending(false);
       return;
     }
 
+    setPending(true);
     const timer = window.setTimeout(() => {
       const entries = state.status === 'ok' ? state.snapshot.index : [];
       const result = searchIndex(entries, query, {
@@ -41,11 +44,14 @@ export function useBookmarkSearch(
         records,
       });
       const accepted = session.accept(result);
-      if (accepted) setHits(accepted.hits);
+      if (accepted) {
+        setHits(accepted.hits);
+        setPending(false);
+      }
     }, SEARCH_DEBOUNCE_MS);
 
     return () => window.clearTimeout(timer);
   }, [query, folderId, composing, state, records]);
 
-  return { hits };
+  return { hits, pending };
 }

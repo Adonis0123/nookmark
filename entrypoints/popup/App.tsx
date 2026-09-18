@@ -43,7 +43,7 @@ export function App() {
   const savingRef = useRef(false);
   const now = Date.now();
   const idle = useIdleView(selectedChipId, now);
-  const { hits } = useBookmarkSearch(query, selectedChipId, composing);
+  const { hits, pending } = useBookmarkSearch(query, selectedChipId, composing);
   const records = useStorageItem(openRecordsItem);
   const snapshotState = useStorageItem(snapshotStateItem);
   const tab = useCurrentTab();
@@ -163,6 +163,7 @@ export function App() {
             <SearchBody
               query={query.trim()}
               hits={hits}
+              pending={pending}
               selectedHit={selectedHit}
               extensionId={extensionId}
               onOpen={handleOpen}
@@ -187,16 +188,19 @@ export function App() {
 function SearchBody({
   query,
   hits,
+  pending,
   selectedHit,
   extensionId,
   onOpen,
 }: {
   query: string;
   hits: SearchHit[];
+  pending: boolean;
   selectedHit: number;
   extensionId: string;
   onOpen: (id: string, url: string) => void;
 }) {
+  if (hits.length === 0 && pending) return null;
   if (hits.length === 0) {
     return (
       <FullPanelMessage
