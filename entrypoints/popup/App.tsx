@@ -74,7 +74,7 @@ export function App() {
         onCompositionStart={() => {}}
         onCompositionEnd={() => {}}
       />
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto [scrollbar-width:thin]">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto [scrollbar-width:thin]">
         <FilterChips
           chips={PREVIEW_CHIPS}
           selectedChipId={selectedChipId}

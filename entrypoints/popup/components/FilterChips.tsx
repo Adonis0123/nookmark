@@ -19,7 +19,7 @@ export function FilterChips({
   if (chips.length === 0) return null;
 
   return (
-    <div className="-mx-5 flex gap-2 overflow-x-auto px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {chips.map((chip) => {
         const selected = chip.id === selectedChipId;
         return (
