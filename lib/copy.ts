@@ -10,6 +10,15 @@ const OPEN_BLOCKED_COPY = '该链接类型已被安全策略阻止';
 
 export const LOADING_COPY = '正在索引书签…';
 export const EMPTY_COPY = '还没有书签。点右上角 ＋ 收藏当前页面。';
+export const SAVE_WRITE_FAILURE_COPY = '无法收藏当前页面';
+
+export function gateSaveOnSnapshot(
+  status: 'loading' | 'ok' | 'permission' | 'error',
+): { save: true } | { save: false; toast: string | null } {
+  if (status === 'ok') return { save: true };
+  if (status === 'loading') return { save: false, toast: LOADING_COPY };
+  return { save: false, toast: null };
+}
 
 export const permissionPanel = {
   title: '需要书签访问权限',

@@ -10,6 +10,15 @@ export type OpenBookmarkDeps = {
   createTab: (opts: { url: string; active: true }) => Promise<unknown>;
 };
 
+export type PrepareOpen =
+  | { kind: 'blocked' }
+  | { kind: 'persistThenCreate' };
+
+export function prepareOpen(url: string): PrepareOpen {
+  if (isBlockedUrl(url)) return { kind: 'blocked' };
+  return { kind: 'persistThenCreate' };
+}
+
 export async function openBookmark(
   url: string,
   deps: OpenBookmarkDeps,

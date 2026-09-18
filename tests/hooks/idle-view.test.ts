@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { BookmarkNode, OpenRecord, SnapshotState } from '@/lib/bookmarks/types';
 import { flattenTree } from '@/lib/bookmarks/tree';
-import { selectIdleView } from '@/hooks/idle-view';
+import { lockupBookmarkCount, selectIdleView } from '@/hooks/idle-view';
 
 const tree = [
   {
@@ -179,5 +179,18 @@ describe('selectIdleView', () => {
       node.id === '101' ? { ...node, syncing: true } : node,
     );
     expect(selectIdleView(ok(mixed), [], null, now).syncingAll).toBeNull();
+  });
+});
+
+describe('lockupBookmarkCount', () => {
+  it('omits the count on loading / permission / error so chrome does not say 0 个书签', () => {
+    expect(lockupBookmarkCount('loading', 0)).toBeUndefined();
+    expect(lockupBookmarkCount('permission', 0)).toBeUndefined();
+    expect(lockupBookmarkCount('error', 0)).toBeUndefined();
+  });
+
+  it('shows the count only for ready and empty snapshots', () => {
+    expect(lockupBookmarkCount('ready', 11)).toBe(11);
+    expect(lockupBookmarkCount('empty', 0)).toBe(0);
   });
 });

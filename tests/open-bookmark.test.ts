@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { isBlockedUrl, openBookmark } from '@/lib/open-bookmark';
+import { isBlockedUrl, openBookmark, prepareOpen } from '@/lib/open-bookmark';
 
 describe('isBlockedUrl', () => {
   it.each([
@@ -46,6 +46,23 @@ describe('openBookmark', () => {
     expect(createTab).toHaveBeenCalledWith({
       url: 'https://figma.com',
       active: true,
+    });
+  });
+});
+
+describe('prepareOpen', () => {
+  it('blocks javascript/data/file before any persist or tab create', () => {
+    expect(prepareOpen('javascript:alert(1)')).toEqual({ kind: 'blocked' });
+    expect(prepareOpen('data:text/html,hi')).toEqual({ kind: 'blocked' });
+    expect(prepareOpen('file:///tmp/x')).toEqual({ kind: 'blocked' });
+  });
+
+  it('asks the popup to persist OpenRecord then create the tab', () => {
+    expect(prepareOpen('https://figma.com')).toEqual({
+      kind: 'persistThenCreate',
+    });
+    expect(prepareOpen('http://example.com')).toEqual({
+      kind: 'persistThenCreate',
     });
   });
 });

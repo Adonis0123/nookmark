@@ -37,6 +37,14 @@ const EMPTY_LISTS = {
   syncingAll: null as boolean | null,
 };
 
+export function lockupBookmarkCount(
+  status: IdleView['status'],
+  bookmarkCount: number,
+): number | undefined {
+  if (status === 'ready' || status === 'empty') return bookmarkCount;
+  return undefined;
+}
+
 export function selectIdleView(
   state: SnapshotState,
   records: OpenRecord[],

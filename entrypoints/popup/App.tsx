@@ -1,5 +1,6 @@
 import { Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { lockupBookmarkCount } from '@/hooks/idle-view';
 import { useBookmarkSearch } from '@/hooks/useBookmarkSearch';
 import { useCurrentTab } from '@/hooks/useCurrentTab';
 import { useIdleView } from '@/hooks/useIdleView';
@@ -7,6 +8,8 @@ import { useStorageItem } from '@/hooks/useStorageItem';
 import {
   EMPTY_COPY,
   LOADING_COPY,
+  SAVE_WRITE_FAILURE_COPY,
+  gateSaveOnSnapshot,
   openResultCopy,
   permissionPanel,
   permissionSettingsUrl,
@@ -16,7 +19,7 @@ import {
 import { displayDomain, formatRelativeTime } from '@/lib/display';
 import { faviconUrl } from '@/lib/favicon';
 import { bumpOpenRecord } from '@/lib/open-records';
-import { openBookmark } from '@/lib/open-bookmark';
+import { prepareOpen } from '@/lib/open-bookmark';
 import { saveCurrentPage } from '@/lib/save-current';
 import type { SearchHit } from '@/lib/search/match';
 import { openRecordsItem, snapshotStateItem } from '@/lib/storage-items';
@@ -61,33 +64,36 @@ export function App() {
   }, [hits]);
 
   async function handleOpen(id: string, url: string) {
-    const result = await openBookmark(url, {
-      createTab: (opts) => browser.tabs.create(opts),
-    });
-    const blocked = openResultCopy(result);
-    if (blocked) {
-      setToast(blocked);
+    const plan = prepareOpen(url);
+    if (plan.kind === 'blocked') {
+      setToast(openResultCopy({ ok: false, reason: 'blocked' }));
       return;
     }
     await openRecordsItem.setValue(bumpOpenRecord(records, id, Date.now()));
+    await browser.tabs.create({ url, active: true });
   }
 
   async function handleSave() {
     if (savingRef.current) return;
+    if (snapshotState.status !== 'ok') {
+      const gate = gateSaveOnSnapshot(snapshotState.status);
+      if (!gate.save && gate.toast) setToast(gate.toast);
+      return;
+    }
     savingRef.current = true;
     try {
-      const nodes =
-        snapshotState.status === 'ok' ? snapshotState.snapshot.nodes : [];
       const result = await saveCurrentPage({
         url: tab?.url ?? '',
         title: tab?.title || tab?.url || '',
-        nodes,
+        nodes: snapshotState.snapshot.nodes,
         create: async (opts) => {
           const created = await browser.bookmarks.create(opts);
           return { id: created.id };
         },
       });
       setToast(saveResultCopy(result));
+    } catch {
+      setToast(SAVE_WRITE_FAILURE_COPY);
     } finally {
       savingRef.current = false;
     }
@@ -131,9 +137,7 @@ export function App() {
     <Shell>
       <header className="flex items-start justify-between gap-3">
         <BrandLockup
-          bookmarkCount={
-            idle.status === 'loading' ? undefined : idle.bookmarkCount
-          }
+          bookmarkCount={lockupBookmarkCount(idle.status, idle.bookmarkCount)}
           syncingAll={idle.syncingAll}
         />
         <CreateButton onClick={() => void handleSave()} />
