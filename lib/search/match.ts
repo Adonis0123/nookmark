@@ -80,6 +80,9 @@ function overlayRecords(
 }
 
 function queryNeedles(q: string): string[] {
+  // Compact (drop spaces) is latin-only so `fig ma` still hits Figma (T-11).
+  // Mixed Han/Latin must stay literal — T-12 `figma设计` is P1.
+  if (hasHan(q)) return [q];
   const compact = compactQuery(q);
   if (compact.length === 0 || compact === q) return [q];
   return [q, compact];
@@ -93,31 +96,37 @@ function scoreEntry(
 ): SearchHit | null {
   const titleNorm = normalizeQuery(entry.title.raw);
   const titleCompact = compactQuery(titleNorm);
-  let channelScore = 0;
+  const titleScores: number[] = [];
   let match: SearchHit['match'] | null = null;
+  const allowCompactHaystack = !hasHan(q);
 
   const rawNeedle =
     firstLiteralHit(titleNorm, needles) ??
-    firstLiteralHit(titleCompact, needles);
+    (allowCompactHaystack ? firstLiteralHit(titleCompact, needles) : null);
 
   if (rawNeedle) {
-    channelScore +=
+    titleScores.push(
       CHANNEL_WEIGHT.title *
-      MATCH_TYPE_WEIGHT.raw *
-      positionBonus(titleNorm.includes(rawNeedle) ? titleNorm : titleCompact, rawNeedle);
+        MATCH_TYPE_WEIGHT.raw *
+        positionBonus(
+          titleNorm.includes(rawNeedle) ? titleNorm : titleCompact,
+          rawNeedle,
+        ),
+    );
     match = hasHan(q) ? 'raw' : 'latin';
   } else if (orderIndependentHan(titleNorm, q)) {
-    channelScore += CHANNEL_WEIGHT.title * MATCH_TYPE_WEIGHT.raw;
+    titleScores.push(CHANNEL_WEIGHT.title * MATCH_TYPE_WEIGHT.raw);
     match = 'raw';
   }
 
   if (shouldScorePinyin(entry.title.raw, entry.title.full, titleCompact)) {
     const fullHit = firstVariantHit(entry.title.full, needles);
     if (fullHit) {
-      channelScore +=
+      titleScores.push(
         CHANNEL_WEIGHT.title *
-        MATCH_TYPE_WEIGHT.pinyinFull *
-        positionBonus(fullHit.haystack, fullHit.needle);
+          MATCH_TYPE_WEIGHT.pinyinFull *
+          positionBonus(fullHit.haystack, fullHit.needle),
+      );
       match ??= 'pinyin-full';
     }
   }
@@ -126,16 +135,19 @@ function scoreEntry(
     const initialsHit = firstVariantHit(entry.title.initials, needles);
     if (initialsHit) {
       const exact = initialsHit.haystack === initialsHit.needle;
-      channelScore +=
+      titleScores.push(
         CHANNEL_WEIGHT.title *
-        MATCH_TYPE_WEIGHT.pinyinInitials *
-        positionBonus(initialsHit.haystack, initialsHit.needle) *
-        (exact ? EXACT_INITIALS_BONUS : 1);
+          MATCH_TYPE_WEIGHT.pinyinInitials *
+          positionBonus(initialsHit.haystack, initialsHit.needle) *
+          (exact ? EXACT_INITIALS_BONUS : 1),
+      );
       match ??= 'pinyin-initials';
     }
   }
 
-  const domainHit = scoreDomain(entry, needles);
+  const titleScore = titleScores.length > 0 ? Math.max(...titleScores) : 0;
+  const domainHit = scoreDomain(entry, needles, allowCompactHaystack);
+  let channelScore = titleScore;
   if (domainHit > 0) {
     channelScore += domainHit;
     match ??= 'domain';
@@ -159,12 +171,16 @@ function scoreEntry(
   return hit;
 }
 
-function scoreDomain(entry: SearchIndexEntry, needles: string[]): number {
+function scoreDomain(
+  entry: SearchIndexEntry,
+  needles: string[],
+  allowCompactHaystack: boolean,
+): number {
   const domainNorm = normalizeQuery(entry.domain.raw);
   const domainCompact = compactQuery(domainNorm);
   const rawNeedle =
     firstLiteralHit(domainNorm, needles) ??
-    firstLiteralHit(domainCompact, needles);
+    (allowCompactHaystack ? firstLiteralHit(domainCompact, needles) : null);
   if (rawNeedle) {
     const haystack = domainNorm.includes(rawNeedle) ? domainNorm : domainCompact;
     return (
@@ -205,10 +221,17 @@ function shouldScorePinyin(
 }
 
 function orderIndependentHan(titleNorm: string, q: string): boolean {
-  if (!hasHan(q)) return false;
-  for (const ch of q) {
-    if (ch === ' ') continue;
+  const compact = compactQuery(q);
+  if (compact.length === 0 || !isAllHan(compact)) return false;
+  for (const ch of compact) {
     if (!titleNorm.includes(ch)) return false;
+  }
+  return true;
+}
+
+function isAllHan(value: string): boolean {
+  for (const ch of value) {
+    if (!HAN.test(ch)) return false;
   }
   return true;
 }

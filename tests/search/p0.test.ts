@@ -172,6 +172,35 @@ describe('P0 seven channels', () => {
     expect(hits.hits[pinyinOnly]?.match).toBe('pinyin-full');
   });
 
+  it('raw latin outranks stacked pinyin on short query s', () => {
+    const hits = searchIndex(fixture, 's', opts);
+    const titles = hits.hits.map((h) => h.entry.title.raw);
+    const raw = titles.indexOf('Sheji Docs');
+    const pinyinOnly = titles.indexOf('设计灵感');
+    expect(raw).toBeGreaterThanOrEqual(0);
+    expect(pinyinOnly).toBeGreaterThanOrEqual(0);
+    expect(raw).toBeLessThan(pinyinOnly);
+  });
+
+  it('does not hit mixed Han/Latin queries (T-12 / T-13 are P1)', () => {
+    const mixed = entry({
+      id: 'figma-spec',
+      title: 'Figma 设计规范',
+      url: 'https://example.com/spec',
+    });
+    const index = [...fixture, mixed];
+    expect(
+      searchIndex(index, 'figma设计', opts).hits.some(
+        (h) => h.entry.title.raw === 'Figma 设计规范',
+      ),
+    ).toBe(false);
+    expect(
+      searchIndex(index, '设计figma', opts).hits.some(
+        (h) => h.entry.title.raw === 'Figma 设计规范',
+      ),
+    ).toBe(false);
+  });
+
   it('returns no hits for an empty query', () => {
     expect(searchIndex(fixture, '   ', opts).hits).toEqual([]);
   });
