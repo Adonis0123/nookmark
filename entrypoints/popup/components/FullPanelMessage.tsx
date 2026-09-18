@@ -1,6 +1,6 @@
 type FullPanelMessageProps = {
   title?: string;
-  body: string;
+  body?: string;
   hint?: string;
   actionLabel?: string;
   onAction?: () => void;
@@ -18,7 +18,9 @@ export function FullPanelMessage({
       {title ? (
         <h2 className="text-[15px] leading-[1.4] font-semibold text-ink">{title}</h2>
       ) : null}
-      <p className="text-[11px] leading-[1.4] text-ink-muted">{body}</p>
+      {body ? (
+        <p className="text-[11px] leading-[1.4] text-ink-muted">{body}</p>
+      ) : null}
       {actionLabel ? (
         <button
           type="button"

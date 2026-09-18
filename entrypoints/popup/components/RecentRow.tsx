@@ -8,6 +8,8 @@ export type RecentRowProps = {
   faviconSrc?: string;
   relativeTime?: string;
   pinyinHint?: string;
+  titleHighlight?: { start: number; end: number };
+  selected?: boolean;
   locked?: boolean;
   onClick?: () => void;
 };
@@ -18,6 +20,8 @@ export function RecentRow({
   faviconSrc,
   relativeTime,
   pinyinHint,
+  titleHighlight,
+  selected = false,
   locked = false,
   onClick,
 }: RecentRowProps) {
@@ -28,13 +32,18 @@ export function RecentRow({
       type="button"
       onClick={onClick}
       title={title}
-      className="flex h-12 w-full cursor-pointer items-center gap-2.5 rounded-row border border-glass-edge-soft bg-glass-element px-[11px] text-left backdrop-blur-[20px]"
+      className={cn(
+        'flex h-12 w-full cursor-pointer items-center gap-2.5 rounded-row border px-[11px] text-left backdrop-blur-[20px]',
+        selected
+          ? 'border-accent bg-accent-soft'
+          : 'border-glass-edge-soft bg-glass-element',
+      )}
     >
       <RowFavicon src={faviconSrc} />
       <span className="flex min-w-0 flex-1 flex-col justify-center">
         <span className="flex min-w-0 items-center gap-1">
           <span className="truncate text-[12.5px] leading-none text-ink">
-            {title}
+            <HighlightedTitle title={title} highlight={titleHighlight} />
           </span>
           {locked ? (
             <Lock
@@ -59,6 +68,26 @@ export function RecentRow({
         </span>
       ) : null}
     </button>
+  );
+}
+
+function HighlightedTitle({
+  title,
+  highlight,
+}: {
+  title: string;
+  highlight?: { start: number; end: number };
+}) {
+  if (highlight == null) return title;
+  const start = Math.max(0, Math.min(title.length, highlight.start));
+  const end = Math.max(start, Math.min(title.length, highlight.end));
+  if (end <= start) return title;
+  return (
+    <>
+      {title.slice(0, start)}
+      <span className="text-accent">{title.slice(start, end)}</span>
+      {title.slice(end)}
+    </>
   );
 }
 

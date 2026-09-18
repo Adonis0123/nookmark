@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react';
-import type { CompositionEvent, FormEvent } from 'react';
+import type { CompositionEvent, FormEvent, Ref } from 'react';
 import { cn } from '@/lib/utils';
 
 type SearchBarProps = {
@@ -8,6 +8,7 @@ type SearchBarProps = {
   onSubmitSearch?: () => void;
   onCompositionStart?: (event: CompositionEvent<HTMLInputElement>) => void;
   onCompositionEnd?: (event: CompositionEvent<HTMLInputElement>) => void;
+  inputRef?: Ref<HTMLInputElement>;
   placeholder?: string;
   className?: string;
 };
@@ -18,6 +19,7 @@ export function SearchBar({
   onSubmitSearch,
   onCompositionStart,
   onCompositionEnd,
+  inputRef,
   placeholder = '搜索书签、网址或拼音',
   className,
 }: SearchBarProps) {
@@ -35,6 +37,7 @@ export function SearchBar({
           aria-hidden
         />
         <input
+          ref={inputRef}
           type="search"
           name="q"
           value={value}
