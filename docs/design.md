@@ -253,12 +253,13 @@ Light glass UI for the Nookmark toolbar popup (420×680). Domain language stays 
 
 Canvas copy is not the domain model:
 
-- The lockup 「书签」 is mock UI. The product name is Nookmark.
-- Category swatches color Folder glyphs. They are not a Category entity.
+- The lockup title is **Nookmark** (confirmed 2026-09-18). Canvas 「书签」 is mock UI.
+- Canvas mock is not a product feature (PRD §11.5). Do not ship tags, notes, stars, recycle, cloud quota, hard-coded「128 / 已同步」, or the 6-color category palette as behavior.
+- Category swatches on the canvas color Folder glyphs. They are not a Category entity. First slice Bookmark tiles and rows use the site **favicon** (ADR 0005); fallback glyph if missing. Chips are text-only.
 - 「常用」 is a Popup section of Bookmark tiles. Product rule (PRD §0.1 D4): 8 auto tiles by local openCount; no manual pin.
-- 「最近打开」 and 「已同步」 are canvas copy. Product rule (PRD §0.1 D5): 3 recent rows; clear wipes local open records only. Chrome Sync is not a Nookmark record; sync copy must follow `syncing` when shown.
-- Search placeholder on canvas may still say「标签」. Product copy is「搜索书签、网址或拼音」(PRD §0.1 D6). Filter chips map to top-level Folders (Folder filter), not tags.
-- Main 「＋」 means save the current tab (PRD §0.1 D2), not an empty-bookmark dialog. Manager entry and settings gear are out of the first Popup P0 slice (D7).
+- 「最近打开」 and 「已同步」 are canvas copy. Product rule (PRD §0.1 D5): 3 recent rows; clear wipes local open records only. Chrome Sync is not a Nookmark record; sync copy must follow `syncing` when shown — omit the sync clause when unknown.
+- Search placeholder on canvas may still say「标签」. Product copy is「搜索书签、网址或拼音」(PRD §0.1 D6). Filter chips are Folder filter (ADR 0007), not tags.
+- Main 「＋」 means save the current tab into Other Bookmarks (PRD §0.1 D2, ADR 0006), not an empty-bookmark dialog. Gear, Manager entry, and 「查看全部」 are **hidden** in the First slice (D7) — not visible-disabled.
 
 P0 empty / no-results / permission / loading / save-current feedback is specified in **P0 states & interactions** below (text + tokens). No extra screenshots required.
 
@@ -270,7 +271,7 @@ P0 empty / no-results / permission / loading / save-current feedback is specifie
 | `docs/screens/popup-add-bookmark.png` | Not aligned | Add-Bookmark dialog (560px). **Predates the `{colors.accent}` decision** — it still uses the earlier Azure palette with grey borders (`#D6E3F0`) instead of white glass edges, and carries a 「标签」 field that `CONTEXT.md` avoids. Treat as a layout reference only. |
 | `docs/screens/manager.png` | Not aligned | Earlier exploration of the Manager surface (1440×720). **Not covered by this spec** (see `CONTEXT.md`) and also on the earlier Azure accent. Treat as a layout reference only. |
 
-Source canvas: <https://ardot.tencent.com/file/726157280612685> — node `9:1` is the Popup, `2:418` the Add-Bookmark dialog, `4:134` the Manager exploration.
+Source canvas: <https://ardot.tencent.com/file/726157280612685> — node `9:1` (`A1b · 弹窗 Meta Blue 宝蓝`) is the Popup. Node `4:1` is labeled「当前基线」on the canvas; that label is stale — confirmed 2026-09-18, do not implement `4:1`. `2:418` is the Add-Bookmark dialog, `4:134` the Manager exploration; both are out of the First slice.
 
 ## Overview
 
@@ -359,7 +360,7 @@ Source canvas: <https://ardot.tencent.com/file/726157280612685> — node `9:1` i
 
 | Role | Size | Weight | Family | Use |
 |---|---|---|---|---|
-| `{typography.brand-title}` | 17px | 600 | Noto Sans SC | 插件名"书签" |
+| `{typography.brand-title}` | 17px | 600 | Noto Sans SC | 插件名 Nookmark |
 | `{typography.section-title}` | 15px | 600 | Noto Sans SC | 分组标题"常用""最近打开" |
 | `{typography.search-input}` | 14px | 400 | Noto Sans SC | 搜索框输入与占位 |
 | `{typography.row-title}` | 12.5px | 400 | Noto Sans SC | 记录行主标题、文字链接 |
@@ -482,7 +483,7 @@ Source canvas: <https://ardot.tencent.com/file/726157280612685> — node `9:1` i
 
 两枚光斑叠出的是"左上偏蓝、右上偏亮"的自然光感——单一光源，不是两束聚光灯。
 
-**`{component.brand-lockup}`** —— 左 30×30 宝蓝方块（`{rounded.logo}`）内嵌 10×15 白色书签线性字形；右为两行文字：`{typography.brand-title}` `{colors.ink}` 的"书签"，`{typography.caption}` `{colors.ink-muted}` 的"128 个书签 · 已同步"。图标与文字间距 `{spacing.lg}`（10px），行内 gap `{spacing.xxs}`（2px）。
+**`{component.brand-lockup}`** —— 左 30×30 宝蓝方块（`{rounded.logo}`）内嵌 10×15 白色书签线性字形；右为两行文字：`{typography.brand-title}` `{colors.ink}` 的 **Nookmark**（画布「书签」是 mock），`{typography.caption}` `{colors.ink-muted}` 的"128 个书签 · 已同步"。图标与文字间距 `{spacing.lg}`（10px），行内 gap `{spacing.xxs}`（2px）。
 
 ### Buttons
 
@@ -516,7 +517,7 @@ Source canvas: <https://ardot.tencent.com/file/726157280612685> — node `9:1` i
 
 **`{component.bookmark-tile}`** —— 86×84，`{rounded.tile}`，填充 `{colors.glass-panel}`、白边 1px `{colors.glass-edge-strong}`、`BACKGROUND_BLUR 30`、内高光 `inset 0 1px 1.5px rgba(255,255,255,0.9)`，外加 `{colors.shadow-card} 0 8px 24px`。内部 `layout: vertical`：`{component.icon-tile}` 30×30 在上，标签在下，gap 8px，内边距 10px。四列网格，gap 12px。
 
-**`{component.icon-tile}`** —— 30×30，`{rounded.icon}`，填充取分类色板的浅色档，`BACKGROUND_BLUR 20`；内嵌 16×16 字形容器，字形为 1.5px 线性描边，颜色取同色号深色档。
+**`{component.icon-tile}`** —— 30×30，`{rounded.icon}`。First slice：站点 favicon（contain）；失败时用 `{colors.inset-tint-8}` 底 + `{colors.ink-muted}` 线性回落字形。画布分类色板不上色。
 
 **`{component.recent-row}`** —— 整宽，高 48px，`{rounded.row}`（12px），填充 `{colors.glass-element}`、白边 `{colors.glass-edge-soft}`、`BACKGROUND_BLUR 20`，**无投影**。内边距 11px，横向 gap 10px。结构：`{component.recent-row-icon}` 26×26（`{rounded.icon-sm}`，分类浅色底 + 深色字形）→ 文字区（`{typography.row-title}` `{colors.ink}` 标题 + `{typography.domain}` `{colors.ink-muted}` 域名，gap 7px，`layoutGrow: 1`）→ `{typography.meta}` `{colors.ink-tertiary}` 时间戳。
 
@@ -526,7 +527,17 @@ Source canvas: <https://ardot.tencent.com/file/726157280612685> — node `9:1` i
 
 **`{component.status-dot}`** —— 7×7 圆，`{colors.success-dot}`，其后跟 `{typography.caption}` `{colors.ink-muted}` 的"已同步 · 刚刚"，gap 6px。全系统唯一的绿色，只用在这里。
 
-### Category Icon Palette
+### Folder filter (D3 / ADR 0007)
+
+Chips: `全部` plus immediate child Folder titles from Bookmarks Bar / Other Bookmarks / Mobile Bookmarks. Hide the chip row when that list is empty. Do not chip the special roots.
+
+- `全部` + empty query: 常用 grid + 最近 rows (this screen).
+- One Folder + empty query: replace 常用 and 最近 with descendant Bookmark `{component.recent-row}` list.
+- Non-empty query: search hits ∩ current chip (`全部` = whole tree). Results use `{component.recent-row}` (favicon + title + domain + pinyin hint when needed).
+
+### Category Icon Palette (canvas mock)
+
+First slice does **not** color Bookmark tiles from this table. Use favicons. The palette stays as a visual reference if a later surface needs Folder glyphs.
 
 六个分类色号，全部服从同一条生成规则——**底 = 同色相极浅，字形 = 同色相极深，两者明度差 ≥45**：
 
@@ -682,7 +693,7 @@ Do not invent a second accent. Skip the cue on raw Han / Latin hits.
 
 ### Save current page (main ＋)
 
-`{component.button-create}` saves the current tab (D2). Feedback is a **toast or inline caption**, not a dialog.
+`{component.button-create}` saves the current tab into Other Bookmarks (D2 / ADR 0006). Feedback is a **toast or inline caption**, not a dialog.
 
 | Outcome | Copy (example) | Treatment |
 |---|---|---|
@@ -692,9 +703,9 @@ Do not invent a second accent. Skip the cue on raw Han / Latin hits.
 
 **Do not** treat `docs/screens/popup-add-bookmark.png` as normative. That frame is Azure + a「标签」field and predates `{colors.accent}` / D2. Empty-bookmark dialog is out of P0.
 
-### Gear / Manager (D7)
+### Gear / Manager / 「查看全部」(D7)
 
-`{component.button-ghost-circular}` (gear) and the footer「打开管理页」`{component.text-link}` are **not interactive** in the first P0 slice: hide them, or leave them visible but `disabled` (no navigation). Hidden entries do not count toward the five `{colors.accent}` hits.
+Hide `{component.button-ghost-circular}` (gear), the footer「打开管理页」`{component.text-link}`, and 常用「查看全部」. Do not render them disabled. Hidden entries do not count toward the five `{colors.accent}` hits.
 
 ---
 

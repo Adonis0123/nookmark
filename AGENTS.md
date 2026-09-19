@@ -30,7 +30,7 @@ Read `CONTEXT.md` for domain terms. Product spec: `docs/prd.md` (§0.1 D1–D8).
 
 Put React hooks in `hooks/`. One hook wraps one concern:
 
-- `useCurrentTab` → `browser.tabs` (current tab for save-current-page). `tabs.create` does not need the full `tabs` permission (ADR 0005).
+- `useCurrentTab` → `browser.tabs.query` for the active tab (needs `activeTab`, not full `tabs`; ADR 0005). `tabs.create` does not need the full `tabs` permission.
 - `useBookmarkSearch` (or a clearer name) → **local-index facade** (ADR 0004). Do **not** call `browser.bookmarks.search` for product search.
 - `useStorageItem` → `storage.defineItem(...).watch` (prefs, OpenRecord)
 
